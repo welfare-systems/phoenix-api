@@ -6,9 +6,11 @@ use actix_web::cookie::{Cookie, SameSite};
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use config::AppConfig;
 use dotenv::dotenv;
+use env_logger;
 
 mod config;
 mod discord_oauth;
+mod handlers;
 
 #[derive(Debug, serde::Deserialize)]
 struct CallbackParams {
@@ -65,17 +67,12 @@ async fn callback(query: web::Query<CallbackParams>) -> impl Responder {
 }
 
 async fn authenticated(request: HttpRequest) -> impl Responder {
-    // Log the cookies to inspect them
-    println!("Cookies: {:?}", request.cookies());
-
     // Retrieve the access token from the cookie
     if let Some(cookie) = request.cookie("access_token") {
         let access_token = cookie.value().to_string();
-        println!("Access token: {}", access_token);
         return HttpResponse::Ok()
             .body(format!("Authenticated with access token: {}", access_token));
     } else {
-        println!("No access token found in the cookie");
         HttpResponse::Unauthorized().body("Not authenticated!")
     }
 }
@@ -83,11 +80,15 @@ async fn authenticated(request: HttpRequest) -> impl Responder {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
+    std::env::set_var("RUST_LOG", "DEBUG");
+    env_logger::init();
+
     HttpServer::new(|| {
         App::new()
             .route("/login", web::get().to(login))
             .route("/callback", web::get().to(callback))
             .route("/authenticated", web::get().to(authenticated))
+            .route("/user", web::get().to(handlers::user::get_user_info))
     })
     .bind("127.0.0.1:8080")?
     .run()

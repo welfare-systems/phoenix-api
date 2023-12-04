@@ -17,4 +17,4 @@ Welcome to the Discord Bot Dashboard API! This API is built in Rust and designed
 - **Strategy Logics**: Implements advanced strategy logics to enhance bot functionality.
 - **Next.js Dashboard**: Designed to work with a Next.js-based dashboard for easy customization and user interaction.
 
-### Version beta-1.0.0
+### Version beta-1.0.1

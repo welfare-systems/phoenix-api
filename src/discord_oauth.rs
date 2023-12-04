@@ -43,8 +43,13 @@ impl DiscordOAuth {
     }
 
     pub async fn exchange_code_for_token(&self, code: &str) -> Result<String, DiscordOAuthError> {
+        // Discord token endpoint URL
+        let token_url = "https://discord.com/api/v10/oauth2/token";
+
+        // Create a client for making HTTP requests
         let client = Client::new();
 
+        // Prepare the request parameters
         let params = [
             ("client_id", &self.client_id),
             ("client_secret", &self.client_secret),
@@ -55,27 +60,24 @@ impl DiscordOAuth {
         ];
 
         let response = client
-            .post("https://discord.com/api/oauth2/token")
+            .post(token_url)
             .form(&params)
             .send()
             .await
             .map_err(DiscordOAuthError::from)?;
 
-        let token_data: serde_json::Value =
-            response.json().await.map_err(DiscordOAuthError::from)?;
-
-        if let Some(access_token) = token_data.get("access_token") {
-            if let Some(access_token_str) = access_token.as_str() {
-                Ok(access_token_str.to_string())
-            } else {
-                Err(DiscordOAuthError::JsonError(
-                    "Invalid access token format".to_string(),
-                ))
-            }
+        if response.status().is_success() {
+            // Parse the response JSON to extract the access token
+            let response_json: serde_json::Value = response.json().await?;
+            let access_token = response_json["access_token"].as_str().unwrap_or_default();
+            Ok(access_token.to_string())
         } else {
-            Err(DiscordOAuthError::JsonError(
+            // Log the error response for debugging
+            let error_response = response.text().await?;
+            eprintln!("Discord Token Exchange Error: {}", error_response);
+            return Err(DiscordOAuthError::JsonError(
                 "Access token not found in response".to_string(),
-            ))
+            ));
         }
     }
 }
