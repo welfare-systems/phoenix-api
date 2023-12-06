@@ -2,6 +2,9 @@
 <img src="https://i.ibb.co/7NXb07j/Full-Welfare-Systems.png">
 </p>
 
+> [!CAUTION]
+> [DEPRECATED] The newest major version of phoenix-api is built on the next web using auth
+
 # Phoenix Defender API
 
 Welcome to the Discord Bot Dashboard API! This API is built in Rust and designed to work seamlessly with Discord bots utilizing advanced strategy logics. It serves as the backend for a dashboard built in Next.js.
